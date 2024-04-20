@@ -7,7 +7,8 @@ on:
 
 env:
   AWS_DEFAULT_REGION: ap-southeast-1
-  REPOSITORY_URL: 784737056121.dkr.ecr.ap-southeast-1.amazonaws.com
+  REGISTRY_URL: 784737056121.dkr.ecr.ap-southeast-1.amazonaws.com
+  REPOSITORY_NAME: survey-backend
 
 jobs:
   build_and_push:
@@ -24,7 +25,7 @@ jobs:
         aws configure set default.region $AWS_DEFAULT_REGION
 
     - name: Login to Amazon ECR
-      run: aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $REPOSITORY_URL # Replace <YOUR_REGION> with your AWS region
+      run: aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $REGISTRY_URL # Replace <YOUR_REGION> with your AWS region
 
 
     # - name: Login to Amazon ECR
@@ -40,7 +41,7 @@ jobs:
       run: docker build -t survey-backend .
 
     - name: Tag Docker image
-      run: docker tag survey-backend:latest $REPOSITORY_URL/survey-backend:latest
+      run: docker tag survey-backend:latest $REGISTRY_URL/$REPOSITORY_NAME:latest
 
     - name: Push Docker image to Amazon ECR
-      run: docker push $REPOSITORY_URL/survey-backend:latest
+      run: docker push $REGISTRY_URL/$REPOSITORY_NAME:latest
