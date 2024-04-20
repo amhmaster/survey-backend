@@ -1,0 +1,46 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches:
+    - main # Change this to your main branch name
+
+env:
+  AWS_DEFAULT_REGION: ap-southeast-1
+  REPOSITORY_URL: 784737056121.dkr.ecr.ap-southeast-1.amazonaws.com
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      run: |
+        aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws configure set default.region $AWS_DEFAULT_REGION
+
+    - name: Login to Amazon ECR
+      run: aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $REPOSITORY_URL # Replace <YOUR_REGION> with your AWS region
+
+
+    # - name: Login to Amazon ECR
+    #   id: login-ecr
+    #   uses: aws-actions/amazon-ecr-login@v1
+    #   with:
+    #     region: ap-southeast-1 # Replace with your AWS region
+    #     registry: 784737056121.dkr.ecr.ap-southeast-1.amazonaws.com # Replace with you registry
+    #     access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Build Docker image
+      run: docker build -t survey-backend .
+
+    - name: Tag Docker image
+      run: docker tag survey-backend:latest $REPOSITORY_URL/survey-backend:latest
+
+    - name: Push Docker image to Amazon ECR
+      run: docker push $REPOSITORY_URL/survey-backend:latest
